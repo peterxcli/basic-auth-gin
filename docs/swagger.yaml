@@ -1,0 +1,248 @@
+definitions:
+  types.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  types.ErrorResponseInvalidToken:
+    properties:
+      message:
+        type: string
+      token:
+        $ref: '#/definitions/types.Token'
+    type: object
+  types.LoginResponseType:
+    properties:
+      message:
+        type: string
+      token:
+        $ref: '#/definitions/types.Token'
+      user:
+        $ref: '#/definitions/types.User'
+    type: object
+  types.LoginType:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  types.RegisterResponseType:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/types.User'
+    type: object
+  types.RegisterType:
+    properties:
+      email:
+        type: string
+      name:
+        description: fullName rule is in validator.go
+        maxLength: 20
+        minLength: 3
+        type: string
+      password:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  types.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  types.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  types.User:
+    properties:
+      email:
+        type: string
+      emailConfirmed:
+        type: boolean
+      emailToken:
+        type: string
+      externalId:
+        type: string
+      externalType:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      permissionLevel:
+        type: integer
+    required:
+    - email
+    - name
+    type: object
+info:
+  contact: {}
+paths:
+  /api/users/verify_email:
+    get:
+      description: Verify user email by token
+      parameters:
+      - description: Verification token
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email verification successful
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Verify user email
+      tags:
+      - user
+  /token/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Refreshes the access token using a refresh token if it is still
+        valid
+      parameters:
+      - description: Refresh token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/types.Token'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Token'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/types.ErrorResponseInvalidToken'
+      summary: Refresh the access token using a refresh token
+      tags:
+      - auth
+  /user/auth/google:
+    get:
+      description: Redirects user to Google OAuth2 authorization page for authentication.
+      produces:
+      - text/html
+      responses:
+        "302":
+          description: Redirects user to Google OAuth2 authorization page.
+          schema:
+            type: string
+      summary: Initiate Google OAuth2 authentication flow
+      tags:
+      - user
+  /user/auth/google/callback:
+    get:
+      description: Inserts or updates a user in the database with the user data received
+        from Google OAuth, and returns a JWT token to the client app.
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Inserts or updates a user with the data received from Google OAuth
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user and returns user details and authentication token.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: loginType
+        required: true
+        schema:
+          $ref: '#/definitions/types.LoginType'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: return with token and user detail
+          schema:
+            $ref: '#/definitions/types.LoginResponseType'
+        "401":
+          description: please confirm your email first
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Logs in a user
+      tags:
+      - user
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new user with the provided email, password, and name
+      parameters:
+      - description: User registration information
+        in: body
+        name: registerInfo
+        required: true
+        schema:
+          $ref: '#/definitions/types.RegisterType'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.RegisterResponseType'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - user
+swagger: "2.0"
