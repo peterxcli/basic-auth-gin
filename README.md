@@ -4,7 +4,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/peterxcli/basic-auth-gin)](https://github.com/peterxcli/basic-auth-gin/releases) 
 
-[![Go Version](https://img.shields.io/github/go-mod/go-version/Massad/gin-boilerplate)](https://github.com/peterxcli/basic-auth-gin/blob/master/go.mod) 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/peterxcli/basic-auth-gin)](https://github.com/peterxcli/basic-auth-gin/blob/master/go.mod) 
 
 [![DB Version](https://img.shields.io/badge/DB-MongoDB--latest-blue)](https://github.com/peterxcli/basic-auth-gin/blob/master/go.mod) 
 
