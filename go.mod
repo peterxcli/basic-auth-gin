@@ -6,8 +6,7 @@ require (
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-playground/validator/v10 v10.11.2
-	github.com/go-redis/redis/v7 v7.3.0
-	github.com/golang-jwt/jwt/v4 v4.1.0
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.3.0
 	github.com/stretchr/testify v1.8.2
