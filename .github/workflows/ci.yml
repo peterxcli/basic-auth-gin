@@ -35,8 +35,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
         run: make test
-
-
+        
   build:
     needs: [test]
     runs-on: ubuntu-latest
