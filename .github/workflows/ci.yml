@@ -6,31 +6,42 @@ name: Go
 on: [push, pull_request]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        mongodb-version: ['6.0']
+        mongodb-version: ["6.0"]
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.19
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
 
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.8.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
 
-    - name: Build
-      run: go build -v -buildvcs=false ./...
+      - name: Build
+        run: go build -v -buildvcs=false ./...
 
-    - name: Test
-      env:
-        EMAIL: ${{ secrets.EMAIL }}
-        SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-      run: make test
+      - name: Test
+        env:
+          EMAIL: ${{ secrets.EMAIL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        run: make test
+
+      - name: docker login
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Build the Docker image
+        run: docker build . --tag peter0814/basic-auth-gin:$(date +%s)
+
+      - name: Docker Push
+        run: docker push peter0814/basic-auth-gin

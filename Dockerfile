@@ -1,18 +1,16 @@
-FROM golang:1.20.1-bullseye
+#build stage
+FROM golang:alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /app
+COPY . /app
+RUN go build -o /app/main -v
 
-
-RUN make install
-
-# [Optional] Uncomment this section to install additional OS packages.
-# RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-#     && apt-get -y install --no-install-recommends <your-package-list-here>
-
-# [Optional] Uncomment if you want to install an additional version of node using nvm
-# ARG EXTRA_NODE_VERSION=10
-# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
-
-# [Optional] Uncomment if you want to install more global node modules
-# RUN su node -c "npm install -g <your-package-list-here>"
-
-CMD [ "make run" ]
-
+#final stage
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+COPY --from=builder /app/main /app/main
+COPY --from=builder /app/public /app/public
+WORKDIR /app
+ENTRYPOINT /app/main
+LABEL Name=mongogo Version=0.0.1
+EXPOSE 9000
