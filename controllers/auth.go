@@ -86,7 +86,7 @@ func (ctl AuthController) Refresh(c *gin.Context) {
 			c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again (refresh_uuid error)"})
 			return
 		}
-		userID := fmt.Sprintf("%.f", claims["user_id"])
+		userID := claims["user_id"].(string)
 
 		//Create new pairs of refresh and access tokens
 		ts, createErr := authModel.CreateToken(userID)

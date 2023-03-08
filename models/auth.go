@@ -119,7 +119,7 @@ func (m AuthModel) ExtractTokenMetadata(r *http.Request) (*types.AccessDetails, 
 		if !ok {
 			return nil, err
 		}
-		userID := fmt.Sprintf("%.f", claims["user_id"])
+		userID := claims["user_id"].(string)
 		if err != nil {
 			return nil, err
 		}
