@@ -51,6 +51,16 @@ type RegisterResponseType struct {
 	User    User   `form:"user" json:"user"`
 }
 
+type UserTokenAuthResponseType struct {
+	Message string `form:"message" json:"message"`
+	User    User   `form:"user" json:"user"`
+}
+
+type UserInfoWithOAuth struct {
+	ExternalType string `bson:"externalType" json:"externalType"`
+	ExternalId   string `bson:"externalId" json:"externalId"`
+}
+
 type LoginResponseType struct {
 	Message string `form:"message" json:"message"`
 	User    User   `form:"user" json:"user"`

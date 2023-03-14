@@ -108,6 +108,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/auth": {
+            "get": {
+                "description": "Validates the access_token in the header of each request that needs to be authenticated",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "JWT Authentication middleware",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "406": {
+                        "description": "Not Acceptable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/user/auth/google": {
             "get": {
                 "description": "Redirects user to Google OAuth2 authorization page for authentication.",
@@ -379,6 +411,17 @@ const docTemplate = `{
                 },
                 "permissionLevel": {
                     "type": "integer"
+                }
+            }
+        },
+        "types.UserTokenAuthResponseType": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/types.User"
                 }
             }
         }

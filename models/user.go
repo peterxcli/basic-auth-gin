@@ -3,7 +3,6 @@ package models
 import (
 	"basic-auth-gin/types"
 	"context"
-	"encoding/json"
 	"errors"
 
 	"basic-auth-gin/db"
@@ -128,7 +127,7 @@ func (m UserModel) EmailExist(email string) (bool, error) {
 	return count > 0, nil
 }
 
-func (m UserModel) InsertOrUpdateByEmail(email string, data *UserSchema) (user *UserSchema, err error) {
+func (m UserModel) InsertOrUpdateByEmail(email string, data interface{}) (user *UserSchema, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// check if a user with the given email exists in the Users collection
@@ -140,25 +139,23 @@ func (m UserModel) InsertOrUpdateByEmail(email string, data *UserSchema) (user *
 		if err != nil {
 			return user, err
 		}
-		return data, nil
+		return data.(*UserSchema), nil
 	} else if err != nil {
 		return user, err
 	} else {
 		// if the user exists, update the user with the given data
-		dataWithoutId, err := json.Marshal(data)
+		//dataWithoutId, err := json.Marshal(data)
 		if err != nil {
 			return user, err
 		}
-		var updateData types.UserNoId
-		json.Unmarshal([]byte(dataWithoutId), &updateData)
+		//var updateData types.UserNoId
+		//json.Unmarshal([]byte(dataWithoutId), &updateData)
 		// remove _id field from data to avoid error
-		_, err = userCollection.UpdateOne(ctx, bson.M{"email": email}, bson.M{"$set": updateData}) //update by email
+		_, err = userCollection.UpdateOne(ctx, bson.M{"email": email}, bson.M{"$set": data}) //update by email
 		if err != nil {
 			return user, err
 		}
 		// return the updated user data
-		//filter := bson.M{"_id": updateResult.UpsertedID.(primitive.ObjectID)}
-		//var updatedUser *UserSchema
 		err = userCollection.FindOne(ctx, filter).Decode(&user)
 		if err != nil {
 			return user, err
@@ -173,12 +170,12 @@ func (m UserModel) One(userID string) (user UserSchema, err error) {
 	defer cancel()
 	id, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return user, errors.New("something went wrong, please try again later")
+		return user, errors.New("userID parsing error")
 	}
-	res := userCollection.FindOne(ctx, bson.M{"id": id})
+	res := userCollection.FindOne(ctx, bson.M{"_id": id})
 	err = res.Decode(&user)
 	if err != nil {
-		return user, errors.New("something went wrong, please try again later")
+		return user, errors.New("user not found or format error")
 	}
 	return user, err
 }

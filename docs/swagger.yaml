@@ -93,6 +93,13 @@ definitions:
     - email
     - name
     type: object
+  types.UserTokenAuthResponseType:
+    properties:
+      message:
+        type: string
+      user:
+        $ref: '#/definitions/types.User'
+    type: object
 info:
   contact: {}
 paths:
@@ -158,6 +165,28 @@ paths:
       summary: Refresh the access token using a refresh token
       tags:
       - auth
+  /user/auth:
+    get:
+      consumes:
+      - application/json
+      description: Validates the access_token in the header of each request that needs
+        to be authenticated
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "406":
+          description: Not Acceptable
+          schema:
+            type: string
+      summary: JWT Authentication middleware
   /user/auth/google:
     get:
       description: Redirects user to Google OAuth2 authorization page for authentication.

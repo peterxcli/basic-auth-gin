@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -178,6 +179,7 @@ func (ctrl UserController) sendEmail(recipientEmail string, token string) error 
 	if err != nil {
 		return err
 	}
+	fmt.Println("api_key", config.Env.SENDGRID_API_KEY)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", config.Env.SENDGRID_API_KEY))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -381,40 +383,52 @@ func (ctrl UserController) InsertOrUpdateWithOpenAuth(c *gin.Context) {
 
 	// check if the user already exists
 	hadUser, err := userModel.EmailExist(email)
-	var user = &models.UserSchema{
-		Email:        email,
-		ExternalId:   externalId,
-		ExternalType: externalType,
-	}
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+	var res = &models.UserSchema{}
+	if hadUser == true {
+		var user = &types.UserInfoWithOAuth{
+			ExternalId:   externalId,
+			ExternalType: externalType,
+		}
 
-	if hadUser == false { // no account found
+		res, err = userModel.InsertOrUpdateByEmail(email, user)
+	} else { // no account found
 		// create a new user
-		user.Id = primitive.NewObjectID()
-		user.Name = name
-		user.PermissionLevel = permissionLevel
+		password, err := uuid.NewUUID()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		var user = &models.UserSchema{
+			Id:              primitive.NewObjectID(),
+			Email:           email,
+			ExternalId:      externalId,
+			ExternalType:    externalType,
+			Name:            name,
+			PermissionLevel: permissionLevel,
+			Password:        password.String(),
+		}
+		res, err = userModel.InsertOrUpdateByEmail(user.Email, user)
 	}
-
-	res, err := userModel.InsertOrUpdateByEmail(user.Email, user)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	if hadUser == false {
-		tokenDetails, err := authModel.CreateToken(user.Id.String())
+		tokenDetails, err := authModel.CreateToken(res.Id.String())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{"message": err.Error()})
 			return
 		}
-		_, err = userModel.Update(bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"emailToken": tokenDetails.AccessToken}})
+		_, err = userModel.Update(bson.M{"_id": res.Id}, bson.M{"$set": bson.M{"emailToken": tokenDetails.AccessToken}})
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{"message": err.Error()})
 			return
 		}
-		ctrl.sendEmail(user.Email, tokenDetails.AccessToken)
+		ctrl.sendEmail(res.Email, tokenDetails.AccessToken)
 	}
 	// set the user ID in the request body
 	c.Set("userId", res.Id.Hex())
@@ -445,6 +459,34 @@ func (ctrl UserController) RedirectWithToken(c *gin.Context) {
 	}
 	loginwithTokenInfoURL := fmt.Sprintf("%s/auth?%s", config.Env.FRONTEND_URI, query.Encode())
 	c.Redirect(http.StatusFound, loginwithTokenInfoURL)
+}
+
+// UserAuth retrieves user information by extracting the userID from the JWT token and returns a JSON response
+// containing the user information if the user is authenticated and their email is confirmed.
+// @Summary Retrieves user information after validating JWT token
+// @Description Retrieves user information after validating JWT token
+// @Accept json
+// @Produce json
+// @Tags user
+// @Success 200 {object} types.UserTokenAuthResponseType
+// @Failure 401 {string} string "please confirm your email first"
+// @Failure 406 {string} string "Not Acceptable"
+// @Router /user/auth [get]
+func (ctrl UserController) UserAuth(c *gin.Context) {
+	//MustGet returns the value for the given key if it exists, otherwise it panics.
+	userID := c.GetString("userID")
+	fmt.Println(userID)
+	user, err := userModel.One(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, types.ErrorResponse{Message: err.Error()})
+		return
+	}
+
+	if user.EmailConfirmed == false {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, types.ErrorResponse{Message: "please confirm your email first"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "authentication passed", "user": user})
 }
 
 // Logout ...

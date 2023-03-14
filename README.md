@@ -39,6 +39,12 @@ The fastest way to deploy a restful api's with [Gin Framework](https://github.co
 2. if you dont have, try my free alternative: `cloudflare` + `sendgrid`
 3. after you get the sengrid email api key, set `SENDGRID_API_KEY` in `.env` to that
 
+### other setting
+##### environment variable
+*  `FRONTEND_URI`: frontend url, this would be use when the google auth callback to bring acess_token to the client
+* `EMAIL`: from email
+* `REDIRECT_URI`: the redirect uri for google oauth, the endpoint will get the grant code from google oauth
+
 ## Installation
 
 ```
