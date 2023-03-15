@@ -18,7 +18,6 @@ var auth = new(controllers.AuthController)
 // @Success 200 {string} string "OK"
 // @Failure 401 {string} string "Unauthorized"
 // @Failure 406 {string} string "Not Acceptable"
-// @Router /user/auth [get]
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth.TokenValid(c)

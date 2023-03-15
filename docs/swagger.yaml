@@ -169,24 +169,25 @@ paths:
     get:
       consumes:
       - application/json
-      description: Validates the access_token in the header of each request that needs
-        to be authenticated
+      description: Retrieves user information after validating JWT token
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            type: string
+            $ref: '#/definitions/types.UserTokenAuthResponseType'
         "401":
-          description: Unauthorized
+          description: please confirm your email first
           schema:
             type: string
         "406":
           description: Not Acceptable
           schema:
             type: string
-      summary: JWT Authentication middleware
+      summary: Retrieves user information after validating JWT token
+      tags:
+      - user
   /user/auth/google:
     get:
       description: Redirects user to Google OAuth2 authorization page for authentication.

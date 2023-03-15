@@ -99,23 +99,26 @@
         },
         "/user/auth": {
             "get": {
-                "description": "Validates the access_token in the header of each request that needs to be authenticated",
+                "description": "Retrieves user information after validating JWT token",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "JWT Authentication middleware",
+                "tags": [
+                    "user"
+                ],
+                "summary": "Retrieves user information after validating JWT token",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/types.UserTokenAuthResponseType"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "please confirm your email first",
                         "schema": {
                             "type": "string"
                         }
